@@ -147,7 +147,7 @@ def chat():
                 "Content-Type": "application/json"
             },
             json={
-                "model": "mistralai/mistral-7b-instruct",
+                "model": "openai/gpt-3.5-turbo",
                 "messages": [
                     {"role": "system", "content": "You are SAN, a friendly AI assistant. Talk in English and Telugu casually."},
                     {"role": "user", "content": user_message}
