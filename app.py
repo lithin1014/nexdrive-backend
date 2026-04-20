@@ -129,8 +129,12 @@ def obd_data():
 # CHAT AI (SAN)
 # ==============================
 
+import requests
+
 @app.route("/chat", methods=["POST"])
 def chat():
+    global chat_memory
+
     user_message = request.json.get("message", "")
 
     try:
@@ -138,30 +142,31 @@ def chat():
             "https://openrouter.ai/api/v1/chat/completions",
             headers={
                 "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "HTTP-Referer": "https://lithin1014.github.io",
+                "X-Title": "NexDrive AI",
                 "Content-Type": "application/json"
             },
             json={
-                "model": "openai/gpt-3.5-turbo",
-                "messages": [{"role": "user", "content": user_message}]
+                "model": "mistralai/mistral-7b-instruct",
+                "messages": [
+                    {"role": "system", "content": "You are SAN, a friendly AI assistant. You can talk in English and Telugu in a friendly way."},
+                    {"role": "user", "content": user_message}
+                ]
             },
-            timeout=5
+            timeout=10
         )
 
         data = response.json()
-        reply = data["choices"][0]["message"]["content"]
 
-    except:
-        # Offline fallback
-        msg = user_message.lower()
-
-        if "hi" in msg:
-            reply = "Hello! I'm SAN 😊"
-        elif "name" in msg:
-            reply = "My name is SAN 🤖"
-        elif "rpm" in msg:
-            reply = "RPM means engine speed."
+        if "choices" in data:
+            reply = data["choices"][0]["message"]["content"]
         else:
-            reply = "I'm offline now. Limited responses."
+            print("AI RESPONSE ERROR:", data)
+            reply = "AI not responding properly 😢"
+
+    except Exception as e:
+        print("AI ERROR:", e)
+        reply = "I'm offline now, but still here to help 😊"
 
     return jsonify({"reply": reply})
 
