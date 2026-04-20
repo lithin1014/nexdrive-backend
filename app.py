@@ -10,9 +10,10 @@ from flask_cors import CORS
 # CONFIG (FIXED)
 # ==============================
 
-OPENROUTER_API_KEY = os.getenv("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")
-EMAIL_USER = os.getenv("lithinmortha1014@gmail.com")
-EMAIL_PASS = os.getenv("amkbtdqymphfuahp")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+print("API KEY:", OPENROUTER_API_KEY)
+EMAIL_USER = os.getenv("EMAIL_USER")
+EMAIL_PASS = os.getenv("EMAIL_PASS")
 
 
 EMERGENCY_CONTACTS = [
@@ -133,28 +134,31 @@ import requests
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    global chat_memory
-
     user_message = request.json.get("message", "")
+
+    if not OPENROUTER_API_KEY:
+        return jsonify({"reply": "AI key missing ❌"})
 
     try:
         response = requests.post(
             "https://openrouter.ai/api/v1/chat/completions",
             headers={
                 "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-                "HTTP-Referer": "https://lithin1014.github.io",
-                "X-Title": "NexDrive AI",
                 "Content-Type": "application/json"
             },
             json={
                 "model": "mistralai/mistral-7b-instruct",
                 "messages": [
-                    {"role": "system", "content": "You are SAN, a friendly AI assistant. You can talk in English and Telugu in a friendly way."},
+                    {"role": "system", "content": "You are SAN, a friendly AI assistant. Talk in English and Telugu casually."},
                     {"role": "user", "content": user_message}
                 ]
             },
             timeout=10
         )
+
+        if response.status_code != 200:
+            print("API ERROR:", response.text)
+            return jsonify({"reply": "AI service error ⚠️"})
 
         data = response.json()
 
@@ -169,7 +173,6 @@ def chat():
         reply = "I'm offline now, but still here to help 😊"
 
     return jsonify({"reply": reply})
-
 # ==============================
 # LOCATION
 # ==============================
